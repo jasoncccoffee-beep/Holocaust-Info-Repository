@@ -81,22 +81,17 @@
 <script>
 var map = L.map('map').setView([52, 15], 5);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-var markers = L.markerClusterGroup();
+var markers = L.layerGroup().addTo(map);
 var dataGlobal;
 
-function getColor(type) {
-  return type.includes("Extermination") ? "red" :
-         type.includes("Labor") ? "green" : "blue";
-}
-
-function getSelectedTypes() {
-  return Array.from(document.querySelectorAll("input[type=checkbox]:checked"))
-    .map(cb => cb.value);
-}
+fetch("camps.geojson")
+  .then(res => res.json())
+  .then(data => {
+    dataGlobal = data;
+    render(1942);
+  });
 
 function render(year) {
   markers.clearLayers();
@@ -136,53 +131,18 @@ function render(year) {
     }
   });
 }
-      );
 
-      marker.on("click", () => {
-        document.getElementById("infoPanel").innerHTML = `
-          <h3>${p.name}</h3>
-          <p><b>Type:</b> ${p.type}</p>
-          <p><b>Estimated deaths:</b> ${p.deaths_min || "Unknown"} – ${p.deaths_max || "Unknown"}</p>
-          <p><b>Years active:</b> ${p.start_year}–${p.end_year}</p>
-          <p><b>Country:</b> ${p.country}</p>
-          <hr>
-          <p style="font-size:13px;">
-            Figures are based on historical research and may vary across sources including the
-            United States Holocaust Memorial Museum and academic studies.
-          </p>
-        `;
-      });
-
-      markers.addLayer(marker);
-    }
-  });
-
-  map.addLayer(markers);
-}
-
-fetch("camps.geojson")
-  .then(function(res) {
-    if (!res.ok) throw new Error("GeoJSON not loading");
-    return res.json();
-  })
-  .then(function(data) {
-
-    L.geoJSON(data, {
-      onEachFeature: function(feature, layer) {
-        layer.bindPopup(
-          "<b>" + feature.properties.name + "</b><br>" +
-          feature.properties.deaths
-        );
-      }
-    }).addTo(map);
-
-  })
-  .catch(function(err) {
-    console.log("ERROR:", err);
-  });
+document.getElementById("yearSlider").addEventListener("input", function(e) {
+  var year = Number(e.target.value);
+  document.getElementById("yearLabel").innerText = year;
+  render(year);
+});
 
 document.querySelectorAll("input[type=checkbox]").forEach(cb => {
-  cb.onchange = () => render(document.getElementById("yearSlider").value);
+  cb.addEventListener("change", function() {
+    var year = Number(document.getElementById("yearSlider").value);
+    render(year);
+  });
 });
 </script>
 
