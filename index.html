@@ -101,23 +101,41 @@ function getSelectedTypes() {
 function render(year) {
   markers.clearLayers();
 
-  let selectedTypes = getSelectedTypes();
+  var selectedTypes = Array.from(
+    document.querySelectorAll("input[type=checkbox]:checked")
+  ).map(cb => cb.value);
 
-  dataGlobal.features.forEach(f => {
-    let p = f.properties;
+  dataGlobal.features.forEach(function(f) {
+    var p = f.properties;
 
-    if (
-      p.start_year <= year &&
-      p.end_year >= year &&
-      selectedTypes.some(t => p.type.includes(t))
-    ) {
-      let marker = L.circleMarker(
+    if (p.start_year <= year && p.end_year >= year) {
+
+      if (!selectedTypes.some(t => p.type.includes(t))) return;
+
+      var color =
+        p.type.includes("Extermination") ? "red" :
+        p.type.includes("Labor") ? "green" :
+        "blue";
+
+      var marker = L.circleMarker(
         [f.geometry.coordinates[1], f.geometry.coordinates[0]],
         {
-          radius: Math.sqrt(p.deaths_max || 1000) / 200,
-          color: getColor(p.type),
+          radius: 6,
+          color: color,
           fillOpacity: 0.8
         }
+      );
+
+      marker.bindPopup(
+        "<b>" + p.name + "</b><br>" +
+        "Type: " + p.type + "<br>" +
+        "Deaths: " + p.deaths
+      );
+
+      markers.addLayer(marker);
+    }
+  });
+}
       );
 
       marker.on("click", () => {
@@ -170,3 +188,9 @@ document.querySelectorAll("input[type=checkbox]").forEach(cb => {
 
 </body>
 </html>
+document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+  cb.addEventListener("change", function() {
+    var year = Number(document.getElementById("yearSlider").value);
+    render(year);
+  });
+});
