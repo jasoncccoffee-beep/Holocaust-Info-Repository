@@ -143,17 +143,25 @@ function render(year) {
 }
 
 fetch("camps.geojson")
-.then(res => res.json())
-.then(data => {
-  dataGlobal = data;
-  render(1942);
-});
+  .then(function(res) {
+    if (!res.ok) throw new Error("GeoJSON not loading");
+    return res.json();
+  })
+  .then(function(data) {
 
-document.getElementById("yearSlider").oninput = function() {
-  let year = this.value;
-  document.getElementById("yearLabel").innerText = year;
-  render(year);
-};
+    L.geoJSON(data, {
+      onEachFeature: function(feature, layer) {
+        layer.bindPopup(
+          "<b>" + feature.properties.name + "</b><br>" +
+          feature.properties.deaths
+        );
+      }
+    }).addTo(map);
+
+  })
+  .catch(function(err) {
+    console.log("ERROR:", err);
+  });
 
 document.querySelectorAll("input[type=checkbox]").forEach(cb => {
   cb.onchange = () => render(document.getElementById("yearSlider").value);
