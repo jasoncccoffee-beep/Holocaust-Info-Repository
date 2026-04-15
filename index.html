@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Holocaust Camps & Killing Sites Interactive Map</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; }
+    #map { height: 100vh; }
+
+    #infoPanel {
+      position:absolute;
+      top:10px;
+      right:10px;
+      background:white;
+      padding:15px;
+      max-width:320px;
+      box-shadow:0 0 10px rgba(0,0,0,0.3);
+      z-index:1000;
+      overflow:auto;
+      max-height:90vh;
+    }
+
+    #controls {
+      position:absolute;
+      bottom:20px;
+      left:20px;
+      background:white;
+      padding:10px;
+      z-index:1000;
+      box-shadow:0 0 10px rgba(0,0,0,0.3);
+    }
+
+    #legend {
+      margin-top:10px;
+      font-size:14px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="infoPanel">
+  <h2>Holocaust Map</h2>
+  <p>
+    This interactive map shows Nazi camps, ghettos, and mass killing sites across Europe (1933–1945).
+  </p>
+  <p>
+    <b>Note:</b> Victim numbers are historical estimates and may vary by source.
+  </p>
+  <hr>
+  <p><i>Click a location to learn more.</i></p>
+</div>
+
+<div id="controls">
+  <div>
+    Year: <span id="yearLabel">1942</span><br>
+    <input id="yearSlider" type="range" min="1933" max="1945" value="1942">
+  </div>
+
+  <div id="legend">
+    <b>Legend:</b><br>
+    🔴 Extermination Camps<br>
+    🟢 Labor Camps<br>
+    🔵 Mobile Killing Units
+  </div>
+
+  <div>
+    <label><input type="checkbox" value="Extermination" checked> Death Camps</label><br>
+    <label><input type="checkbox" value="Labor" checked> Labor Camps</label><br>
+    <label><input type="checkbox" value="Mobile" checked> Mobile Units</label>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+var map = L.map('map').setView([52, 15], 5);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+var markers = L.markerClusterGroup();
+var dataGlobal;
+
+function getColor(type) {
+  return type.includes("Extermination") ? "red" :
+         type.includes("Labor") ? "green" : "blue";
+}
+
+function getSelectedTypes() {
+  return Array.from(document.querySelectorAll("input[type=checkbox]:checked"))
+    .map(cb => cb.value);
+}
+
+function render(year) {
+  markers.clearLayers();
+
+  let selectedTypes = getSelectedTypes();
+
+  dataGlobal.features.forEach(f => {
+    let p = f.properties;
+
+    if (
+      p.start_year <= year &&
+      p.end_year >= year &&
+      selectedTypes.some(t => p.type.includes(t))
+    ) {
+      let marker = L.circleMarker(
+        [f.geometry.coordinates[1], f.geometry.coordinates[0]],
+        {
+          radius: Math.sqrt(p.deaths_max || 1000) / 200,
+          color: getColor(p.type),
+          fillOpacity: 0.8
+        }
+      );
+
+      marker.on("click", () => {
+        document.getElementById("infoPanel").innerHTML = `
+          <h3>${p.name}</h3>
+          <p><b>Type:</b> ${p.type}</p>
+          <p><b>Estimated deaths:</b> ${p.deaths_min || "Unknown"} – ${p.deaths_max || "Unknown"}</p>
+          <p><b>Years active:</b> ${p.start_year}–${p.end_year}</p>
+          <p><b>Country:</b> ${p.country}</p>
+          <hr>
+          <p style="font-size:13px;">
+            Figures are based on historical research and may vary across sources including the
+            United States Holocaust Memorial Museum and academic studies.
+          </p>
+        `;
+      });
+
+      markers.addLayer(marker);
+    }
+  });
+
+  map.addLayer(markers);
+}
+
+fetch("camps.geojson")
+.then(res => res.json())
+.then(data => {
+  dataGlobal = data;
+  render(1942);
+});
+
+document.getElementById("yearSlider").oninput = function() {
+  let year = this.value;
+  document.getElementById("yearLabel").innerText = year;
+  render(year);
+};
+
+document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+  cb.onchange = () => render(document.getElementById("yearSlider").value);
+});
+</script>
+
+</body>
+</html>
