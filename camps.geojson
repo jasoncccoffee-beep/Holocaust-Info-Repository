@@ -6,7 +6,9 @@
       "properties": {
         "name": "Auschwitz-Birkenau",
         "type": "Extermination Camp",
-        "deaths": "~1,100,000"
+        "deaths": "~1,100,000",
+        "start_year": 1940,
+        "end_year": 1945
       },
       "geometry": {
         "type": "Point",
@@ -18,7 +20,9 @@
       "properties": {
         "name": "Treblinka",
         "type": "Extermination Camp",
-        "deaths": "~900,000"
+        "deaths": "~900,000",
+        "start_year": 1942,
+        "end_year": 1943
       },
       "geometry": {
         "type": "Point",
@@ -29,8 +33,10 @@
       "type": "Feature",
       "properties": {
         "name": "Dachau",
-        "type": "Concentration Camp",
-        "deaths": "~40,000"
+        "type": "Labor Camp",
+        "deaths": "~40,000",
+        "start_year": 1933,
+        "end_year": 1945
       },
       "geometry": {
         "type": "Point",
