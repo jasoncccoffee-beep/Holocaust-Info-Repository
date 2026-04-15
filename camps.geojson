@@ -1,1 +1,41 @@
-
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Auschwitz-Birkenau",
+        "type": "Extermination Camp",
+        "deaths": "~1,100,000"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.1783, 50.0359]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Treblinka",
+        "type": "Extermination Camp",
+        "deaths": "~900,000"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [22.0250, 52.6583]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dachau",
+        "type": "Concentration Camp",
+        "deaths": "~40,000"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [11.4340, 48.2612]
+      }
+    }
+  ]
+}
